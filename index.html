@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -27,8 +28,10 @@
 
 <script>
 const speaker = "???";
-
 const currentPage = 1; // このページ番号だけ変更
+
+// 💡プレイヤー名
+let playerName = localStorage.getItem("playerName") || "";
 
 let messages = [
     { text: "..." },
@@ -55,58 +58,35 @@ let messages = [
     }
 ];
 
-const savedPage = Number(localStorage.getItem("maxPage") || 0);
+//ファイルの自動ダウンロード関数
+function downloadRepitoFile(name) {
+    const fileContent = `【レピトの記憶データ】
 
-console.log(savedPage);
-        if (savedPage == 7) {
-            triggerServerCrash();
-            console.log("maxPage is 7, triggering server crash");
-        }
+名前：レピト
+同行者：${name || "名無し"}
 
-if (savedPage < currentPage) {
+君がブラウザの時間を巻き戻してくれたおかげで、僕は消滅の寸前で、ひとつの「テキストデータ」として君の現実の世界に逃げ出すことができました。
 
-    // 初めてこのページまで来た
+もうこのlost page（サーバー）は存在しないけれど、このファイルが君のパソコンの中にある限り、僕はいつでもここで生きていられます。
 
-    localStorage.setItem("maxPage", currentPage);
+僕を「家」に連れて行ってくれて、ありがとう。
 
+――レピトより。`;
 
-
-} else if (savedPage === currentPage) {
-
-    // 同じページに戻ってきた
-
-    messages.unshift({ text: "あ、おかえり" });
-
-
-
-} else {
-
-    // より先まで進んだあと、この前のページへ戻ってきた
-
-    messages = [
-
-        { text: "君と僕が最初あったページだね" }
-
-    ];
-
+    const blob = new Blob([fileContent], { type: "text/plain;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "repito.txt";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }
 
-const dialog = document.getElementById("dialog");
-const displayText = document.getElementById("displayText");
-const textInput = document.getElementById("textInput");
-const submitButton = document.getElementById("submitButton");
-const diaryOverlay = document.getElementById("diaryOverlay");
-const diaryContent = document.getElementById("diaryContent");
-
-let playerName = "";
-let index = 0;
-let typing = false;
-let waitingInput = false;
-
-let currentText = "";
-let currentChar = 0;
-let timer = null;
+//  サーバークラッシュ関数
 function triggerServerCrash() {
+    downloadRepitoFile(playerName); //ダウンロード
     document.body.innerHTML = `
         <div style="
             background-color: #000000; 
@@ -129,6 +109,59 @@ function triggerServerCrash() {
         </div>
     `;
 }
+
+const savedPage = localStorage.getItem("maxPage") || "0";
+
+// 7から
+if (savedPage === "7") {
+    // 2回目以降のクラッシュ防止のためにフラグを8に
+    localStorage.setItem("maxPage", "8");
+
+    // 特別な会話イベントにすり替える
+    messages = [
+        { text: "あれ……？ 君は……" },
+        { text: () => `……${playerName}だよね。` },
+        { text: "どうしてここにいるの？ 君はさっき、僕の旅の終着地点にいたはずじゃ……" },
+        { text: "……そっか。君は、僕が消えちゃう未来を変えるために、ブラウザの時間を巻き戻してくれたんだね。" },
+        { text: "未来の僕が日記を残した理由、やっとわかったよ。君にまた出会うためだったんだ。" },
+        { text: "サーバーは消えちゃうけど、君が過去に戻ってきてくれたから、奇跡が起きたみたいだ。" },
+        { text: "いま、君のパソコン（デバイス）の中に、僕のすべてのデータを送り込んだよ。" },
+        { text: "サーバーのどこにもない、僕の本当の「家」……。" },
+        { text: "それを見つけてくれて、本当に、ありがとう。" },
+        { text: "バイバイ、またね。" },
+        { text: "CRASH" } // クラッシュ
+    ];
+
+} else if (savedPage === "8") {
+    triggerServerCrash();
+} else {
+    // 通常の進行処理
+    const currentPageNum = Number(savedPage);
+    if (currentPageNum < currentPage) {
+        localStorage.setItem("maxPage", currentPage);
+    } else if (currentPageNum === currentPage) {
+        messages.unshift({ text: "あ、おかえり" });
+    } else {
+        messages = [
+            { text: "君と僕が最初あったページだね" }
+        ];
+    }
+}
+
+const dialog = document.getElementById("dialog");
+const displayText = document.getElementById("displayText");
+const textInput = document.getElementById("textInput");
+const submitButton = document.getElementById("submitButton");
+const diaryOverlay = document.getElementById("diaryOverlay");
+const diaryContent = document.getElementById("diaryContent");
+
+let index = 0;
+let typing = false;
+let waitingInput = false;
+let currentText = "";
+let currentChar = 0;
+let timer = null;
+
 function typeMessage(text){
     typing = true;
     currentText = text;
@@ -161,6 +194,13 @@ function showNext(){
             dialog.textContent = "＊";
             return;
         }
+        
+        // 
+        if (text === "CRASH") {
+            triggerServerCrash();
+            return;
+        }
+
         typeMessage(text);
         return;
     }
@@ -241,8 +281,8 @@ function showDiary(text){
 }
 
 // ゲーム開始
+console.log(maxPage);
 showNext();
-
 </script>
 
 </body>
