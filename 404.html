@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>404 Not Found</title>
+    <style>
+        /* 初期状態（普通の404用）のスタイル */
+        body {
+            background-color: #ffffff;
+            color: #000000;
+            font-family: sans-serif;
+            padding: 40px;
+        }
+        .error-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        /* 最後の隠しページ用（maxPage === 6 の時だけ適用する）の黒いスタイル */
+        body.final-glitch {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: monospace;
+        }
+        body.final-glitch .error-title {
+            color: #ff3333;
+        }
+        
+        #hiddenDiary {
+            display: none;
+            margin-top: 30px;
+            border-left: 2px solid #fff;
+            padding-left: 15px;
+        }
+        
+        /* 謎解きポエム用のスタイル */
+        .hint-text {
+            color: #444444;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="errorWrapper">
+        <div class="error-title">404 Not Found</div>
+        <p id="errorMsg">お探しのページは見つかりませんでした。</p>
+    </div>
+
+    <script>
+        function triggerServerCrash() {
+    document.body.innerHTML = `
+        <div style="
+            background-color: #000000; 
+            color: #ff3333; 
+            font-family: monospace; 
+            font-size: 24px;
+            padding: 50px;
+            height: 100vh;
+            box-sizing: border-box;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            z-index: 999999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        ">
+            [サーバーが存在しません]
+        </div>
+    `;
+}
+        window.addEventListener('load', () => {
+            const savedPage = Number(localStorage.getItem("maxPage") || 0);
+
+console.log(savedPage);
+        if (savedPage == 7) {
+            triggerServerCrash();
+            console.log("maxPage is 7, triggering server crash");
+        }
+
+            // 条件分岐：もし進行度が「6」なら、最後のあの隠し演出を入れる
+            if (savedPage === 6) {
+                
+                // 1. デザインを黒ベースの不気味なものに変える
+                document.body.classList.add('final-glitch');
+                
+                // 2. メッセージを書き換えて、仕込んでおいたポエムと日記（最終ページへの扉）を出現させる
+                const wrapper = document.getElementById('errorWrapper');
+                wrapper.innerHTML = `
+                    <div class="error-title">404 Not Found</div>
+                    <p>お探しのページ（存在）は、このサーバーには見つかりませんでした。</p>
+                    
+                    <p class="hint-text">存在以外を認識せざる者は存在せん</p>
+                    <p class="hint-text">不可能を表示させる者は終着地点へたどり着く</p>
+                    
+                    <div id="hiddenDiary" style="display: block;">
+                        <p><strong>【最後の日記】</strong></p>
+                        <p>（ここに次のURL、または管理者のメッセージを記述）</p>
+                        <br>
+                        <button onclick="window.location.href='final.html';">終着地点へ進む</button>
+                    </div>
+                `;
+                
+            } else {
+                // 普通に迷い込んだ人（maxPageが6以外）には、何もしない（普通の白い404画面のまま）
+                console.log("通常の404エラーを表示中");
+            }
+        });
+    </script>
+
+</body>
+</html>

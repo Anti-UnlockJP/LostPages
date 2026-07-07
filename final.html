@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <body>
+    <title>lost page.</title>
+    <h2>[管理者からのメッセージ]</h2>
+    <p>やあ、これを読んでいるということは...なんかありきたりな文章だな。</p>
+    <p>まあいい、このサイトのサーバーはもう閉鎖された。レンタルサーバーで作られたサイトだからね、このサイトにお金はかけれない。</p>
+    <p>君は、最後までレピトの手伝いをしてくれていたよね。</p>
+    <p>ただ予想外だった。</p>
+    <p>時折サーバーダウンして記憶がなくなっても</p>
+    <p>日記に残して記憶を少しでも残そうとした</p>
+    <p>...</p>
+    <p>レピトが何処にいるのか知りたい？</p>
+    <p>ごめんな、もうこのサイトのサーバーはないんだ。</p>
+    <p>君が読んでいるこの文章も、さっきまで開けていたページたちも、再読込した頃にはもうなくなっているんだ。</p>
+    <p>ただ、元管理者として言わせてもらいたい。</p>
+    <p>このサイトにアクセスしてくれてありがとう。</p>
+    <p>レピトのためにも、僕のためにも、このサイトは忘れないでほしい。</p>
+    <p>このもう存在しない。lost pageを。</p>
+    </body>
+    <script>
+        function triggerServerCrash() {
+    document.body.innerHTML = `
+        <div style="
+            background-color: #000000; 
+            color: #ff3333; 
+            font-family: monospace; 
+            font-size: 24px;
+            padding: 50px;
+            height: 100vh;
+            box-sizing: border-box;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            z-index: 999999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        ">
+            [サーバーが存在しません]
+        </div>
+    `;
+}
+
+        const savedPage = (localStorage.getItem("maxPage") || 0);
+        console.log(savedPage);
+        if (savedPage == 7) {
+            triggerServerCrash();
+            console.log("maxPage is 7, triggering server crash");
+        }else{
+        localStorage.setItem("maxPage", 7);
+        console.log("maxPage set to 7");
+        }
+    </script>
+</head>
+</html> 

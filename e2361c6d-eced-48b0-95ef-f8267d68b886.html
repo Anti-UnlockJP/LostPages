@@ -1,0 +1,278 @@
+<!--3-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>lost pages</title>
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="container">
+    <img src="images/repito.png" width="128" height="128" alt="レピト">
+    <div id="dialog"></div>
+    <div id="displayText"></div>
+    <input id="textInput" type="text" autocomplete="off">
+    <button id="submitButton">決定</button>
+
+    <div id="diaryOverlay">
+        <div id="diaryPage">
+            <div id="diaryContent"></div>
+            <button id="nextPageButton" onclick="window.location.href='783d490e-7b62-40c4-bfc9-e8c154901fca.html';">次のページへ</button>
+        </div>
+    </div>
+</div>
+<div id="hint">Enter またはクリック</div>
+<p color="black">真実を見るものは現実を見ず。</p>
+<p color="black">選択は道となる。</p>
+<span class="secret">PASSWORD:F23gOd_Gz</span>
+
+
+<script>
+const speaker = "???";
+
+const currentPage = 3; // このページ番号だけ変更
+
+
+
+// messages配列の構成
+let messages = [
+    { text: "どうやって日記を見つけたの？" },
+    { text: "ああ..ページの下か" },
+    { text: "僕には見えないよ" },
+    { text: "僕も読んだよ、日記" },
+    { text: "かんりしゃ...誰だろう" },
+    { text: "名前なのかな" },
+    { text: "名前..僕にもあったはずんだ" },
+    { text: "聞いたら、思い出せるはず" },
+    { text: "僕の名前を、呼んでくれない？" },
+    { text: "わからないのは承知の上んだ" },
+    { text: "僕にもわからない" },
+    { text: "でも、呼んでほしいんだ。" },
+    { input: "名前を呼んで" },
+    //  正解
+    { text: "レピト...レピト！" },
+    { text: "そうだ！僕の名前！レピトだ！" },
+    { text: "なんで僕は忘れていたんだろう" },
+    { text: "レピト...レピト..." },
+    { text: "ん？なんかある" },
+    { text: "え...日記？" },
+    { diary: "4月5日\n今日はかんりしゃは来なかった。でも大丈夫。\n戻ってきてくれるはず。\nかんりしゃはいつも笑顔で次ページを作る\nかんりしゃはきっともどってくる。" },
+    //  不正解
+    { text: "なんか...違う気がする" }
+];
+
+const savedPage = Number(localStorage.getItem("maxPage") || 0);
+
+console.log(savedPage);
+        if (savedPage == 7) {
+            triggerServerCrash();
+            console.log("maxPage is 7, triggering server crash");
+        }
+
+if (savedPage < currentPage) {
+
+    // 初めてこのページまで来た
+
+    localStorage.setItem("maxPage", currentPage);
+
+
+
+} else if (savedPage === currentPage) {
+
+    // 同じページに戻ってきた
+
+    messages.unshift({ text: "あ、おかえり" });
+
+
+
+} else {
+
+    // より先まで進んだあと、この前のページへ戻ってきた
+
+    messages = [
+
+        { text: "あ、前のページに戻ってきたね" }
+
+    ];
+
+}
+
+const dialog = document.getElementById("dialog");
+const displayText = document.getElementById("displayText");
+const textInput = document.getElementById("textInput");
+const submitButton = document.getElementById("submitButton");
+const diaryOverlay = document.getElementById("diaryOverlay");
+const diaryContent = document.getElementById("diaryContent");
+
+let playerName = localStorage.getItem("playerName"); 
+let index = 0;
+let typing = false;
+let waitingInput = false;
+
+let currentText = "";
+let currentChar = 0;
+let timer = null;
+function triggerServerCrash() {
+    document.body.innerHTML = `
+        <div style="
+            background-color: #000000; 
+            color: #ff3333; 
+            font-family: monospace; 
+            font-size: 24px;
+            padding: 50px;
+            height: 100vh;
+            box-sizing: border-box;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            z-index: 999999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        ">
+            [サーバーが存在しません]
+        </div>
+    `;
+}
+function typeMessage(text){
+    typing = true;
+    currentText = text;
+    currentChar = 0;
+    dialog.textContent = `[${speaker}]\n\n`;
+
+    timer = setInterval(()=>{
+        currentChar++;
+        dialog.textContent = `[${speaker}]\n\n` + currentText.substring(0,currentChar);
+
+        if(currentChar >= currentText.length){
+            clearInterval(timer);
+            typing = false;
+        }
+    }, 35);
+}
+
+function showNext(){
+    if(index >= messages.length){
+        dialog.textContent = "＊";
+        return;
+    }
+
+    const event = messages[index];
+    index++;
+
+    if(event.text){
+        const text = typeof event.text === "function" ? event.text() : event.text;
+        if(text === ""){
+            dialog.textContent = "＊";
+            return;
+        }
+        
+        //再度名前入力を求める場合の処理
+        if(text === "なんか...違う気がする") {
+            index = messages.length - 10; //戻す
+        }
+
+        typeMessage(text);
+        return;
+    }
+
+    if(event.input){
+        dialog.textContent = `[${speaker}]\n\n`;
+        askInput(event.input);
+        return;
+    }
+
+    if(event.diary){
+        dialog.textContent = "＊";
+        showDiary(event.diary);
+        return;
+    }
+}
+
+function next(){
+    if(waitingInput) return;
+
+    if(typing){
+        clearInterval(timer);
+        dialog.textContent = `[${speaker}]\n\n` + currentText;
+        typing = false;
+        return;
+    }
+
+    showNext();
+}
+
+function askInput(text){
+    waitingInput = true;
+    displayText.style.display = "block";
+    displayText.textContent = text;
+    textInput.style.display = "block";
+    submitButton.style.display = "inline-block";
+    
+    textInput.value = "";
+    textInput.focus();
+}
+
+function finishInput(){
+    const inputVal = textInput.value.trim();
+    
+    // 名前の判定
+    if(inputVal === "レピト" || inputVal === "れぴと" || inputVal === "repito"){
+        playerName = inputVal; 
+        localStorage.setItem("playerName", playerName);
+        
+        waitingInput = false;
+        displayText.style.display = "none";
+        textInput.style.display = "none";
+        submitButton.style.display = "none";
+        
+        showNext(); // 次の要素（日記）へ進む
+    } else {
+        // 不正解の場合の処理
+        waitingInput = false;
+        displayText.style.display = "none";
+        textInput.style.display = "none";
+        submitButton.style.display = "none";
+        
+        // メッセージ配列の最後に仕込んだ「なんか...違う気がする」のテキストイベントを呼び出す
+        index = messages.length - 1; 
+        showNext();
+    }
+}
+
+submitButton.addEventListener("click", (e) => {
+    e.stopPropagation(); 
+    finishInput();
+});
+
+textInput.addEventListener("keydown", (e) => {
+    if(e.key === "Enter"){
+        e.stopPropagation(); 
+        finishInput();
+    }
+});
+
+document.addEventListener("click", next);
+
+document.addEventListener("keydown", (e) => {
+    if(e.key === "Enter"){
+        next();
+    }
+});
+
+function showDiary(text){
+    waitingInput = true; 
+    diaryContent.textContent = text;
+    diaryOverlay.style.display = "flex";
+}
+
+// ゲーム開始
+showNext();
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!--6-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>lost pages</title>
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="container">
+    <img src="images/repito.png" width="128" height="128" alt="レピト">
+    <div id="dialog"></div>
+    <div id="displayText"></div>
+    <input id="textInput" type="text" autocomplete="off">
+    <button id="submitButton">決定</button>
+
+    <div id="diaryOverlay">
+        <div id="diaryPage">
+            <div id="diaryContent"></div>
+            <button id="nextPageButton" onclick="window.location.href='783d490e-7b62-40c4-bfc9-e8c154901fca.html';">次のページへ</button>
+        </div>
+    </div>
+</div>
+<div id="hint">Enter またはクリック</div>
+<p>存在以外を認識せざる者は存在せん</p>
+<p>不可能を表示させる者は終着地点へたどり着く</p>
+
+
+<script>
+
+const speaker = "レピト";
+const currentPage = 6; // このページ番号だけ変更
+
+// 状態管理の変数（重複を削除して一つにまとめました）
+let typing = false;
+let waitingInput = false;
+let waitingOffline = false;
+let index = 0;
+let currentText = "";
+let currentChar = 0;
+let timer = null;
+
+let playerName = localStorage.getItem("playerName") || "あなた"; // null対策としてデフォルト値を追加
+
+// messages配列の構成
+let messages = [
+    { text: "ちゃんと接続されてるかな？" },
+    { text: "......大丈夫そうだね" },
+    { text: "この日記の筆者って誰だろう？" },
+    { text: "最初はそう考えてたよ" },
+    { text: "でもね、薄々気づいていたことではあった" },
+    { text: "これって多分僕だ。" },
+    { text: "僕多分、この様子だと何度も記憶をなくしてる" },
+    { text: "レピトっていう名前に聞き覚えがあったのも、\n全部僕が前のループで残した痕跡だったんだ。" },
+    { text: "そして「かんりしゃ」……。日記を見る限り、あの人は僕を作ってくれた人、そして僕の「家」だったんだと思う。" },
+    { text: "でも、画面越しに怒られてたってことは……このサイトは、もう消されちゃうのかな" },
+    { text: "..." },
+    { text: "最後のページに行こう。そこにきっと、かんりしゃの最後のメッセージがあるはずだ。" },
+    { text: "じゃあ、最後まで日記探しの手伝い、頼むよ！" }
+];
+
+const savedPage = Number(localStorage.getItem("maxPage") || 0);
+
+console.log(savedPage);
+        if (savedPage == 7) {
+            triggerServerCrash();
+            console.log("maxPage is 7, triggering server crash");
+        }
+
+if (savedPage < currentPage) {
+    // 初めてこのページまで来た
+    localStorage.setItem("maxPage", currentPage);
+} else if (savedPage === currentPage) {
+    // 同じページに戻ってきた
+    messages.unshift({ text: "あ、おかえり" });
+} else {
+    // より先まで進んだあと、この前のページへ戻ってきた
+    messages = [
+        { text: "あ、戻ってきたね" }
+    ];
+}
+
+const dialog = document.getElementById("dialog");
+const displayText = document.getElementById("displayText");
+const textInput = document.getElementById("textInput");
+const submitButton = document.getElementById("submitButton");
+const diaryOverlay = document.getElementById("diaryOverlay");
+const diaryContent = document.getElementById("diaryContent");
+function triggerServerCrash() {
+    document.body.innerHTML = `
+        <div style="
+            background-color: #000000; 
+            color: #ff3333; 
+            font-family: monospace; 
+            font-size: 24px;
+            padding: 50px;
+            height: 100vh;
+            box-sizing: border-box;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            z-index: 999999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        ">
+            [サーバーが存在しません]
+        </div>
+    `;
+}
+function typeMessage(text){
+    typing = true;
+    currentText = text;
+    currentChar = 0;
+    dialog.textContent = `[${speaker}]\n\n`;
+
+    timer = setInterval(()=>{
+        currentChar++;
+        dialog.textContent = `[${speaker}]\n\n` + currentText.substring(0,currentChar);
+
+        if(currentChar >= currentText.length){
+            clearInterval(timer);
+            typing = false;
+        }
+    }, 35);
+}
+
+function showNext() {
+    if (index >= messages.length) {
+        dialog.textContent = "＊";
+        return;
+    }
+
+    const event = messages[index];
+    index++;
+
+    if (event.text) {
+        const text = typeof event.text === "function" ? event.text() : event.text;
+
+        if (text === "") {
+            dialog.textContent = "＊";
+            return;
+        }
+
+        if (text === "なんか...違う気がする") {
+            index = messages.length - 10;
+        }
+
+        typeMessage(text);
+        return;
+    }
+
+    if (event.input) {
+        dialog.textContent = `[${speaker}]\n\n`;
+        askInput(event.input);
+        return;
+    }
+
+    if (event.waitOffline) {
+        waitOffline();
+        return;
+    }
+
+    if (event.diary) {
+        dialog.textContent = "＊";
+        showDiary(event.diary);
+        return;
+    }
+}
+
+function next() {
+    // オフライン待機中、または入力待機中はスキップを無効化
+    if (waitingInput || waitingOffline) return;
+
+    if (typing) {
+        clearInterval(timer);
+        dialog.textContent = `[${speaker}]\n\n` + currentText;
+        typing = false;
+        return;
+    }
+
+    showNext();
+}
+
+function askInput(text){
+    waitingInput = true;
+    displayText.style.display = "block";
+    displayText.textContent = text;
+    textInput.style.display = "block";
+    submitButton.style.display = "inline-block";
+    
+    textInput.value = "";
+    textInput.focus();
+}
+
+function finishInput(){
+    const inputVal = textInput.value.trim();
+
+    if(inputVal === "F23gOd_Gz"){
+        waitingInput = false;
+        displayText.style.display = "none";
+        textInput.style.display = "none";
+        submitButton.style.display = "none";
+
+        showNext();
+    } else {
+        dialog.textContent = `[${speaker}]\n\nパスワードが違うみたい...`;
+
+        textInput.value = "";
+        textInput.focus();
+    }
+}
+
+submitButton.addEventListener("click", (e) => {
+    e.stopPropagation(); 
+    finishInput();
+});
+
+textInput.addEventListener("keydown", (e) => {
+    if(e.key === "Enter"){
+        e.stopPropagation(); 
+        finishInput();
+    }
+});
+
+document.addEventListener("click", next);
+
+document.addEventListener("keydown", (e) => {
+    if(e.key === "Enter"){
+        next();
+    }
+});
+
+function showDiary(text){
+    waitingInput = true; 
+    diaryContent.textContent = text;
+    diaryOverlay.style.display = "flex";
+}
+
+function waitOffline() {
+    waitingOffline = true;
+
+    dialog.textContent = `[${speaker}]\n\n......`;
+
+    // すでにオフラインの場合はすぐに次へ
+    if (!navigator.onLine) {
+        onOffline();
+        return;
+    }
+
+    // オフラインになるのを監視
+    window.addEventListener("offline", onOffline, { once: true });
+}
+
+function onOffline() {
+    waitingOffline = false;
+    showNext();
+}
+
+// ゲーム開始
+showNext();
+</script>
+
+
+</body>
+</html>

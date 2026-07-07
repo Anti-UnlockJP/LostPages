@@ -1,0 +1,153 @@
+@font-face {
+    font-family: 'MISAKI';
+    src: url('fonts/misaki_gothic_2nd.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+body {
+    margin: 0;
+    background: #000;
+    color: #fff;
+    font-family: 'MISAKI', monospace;
+    /* user-select: none; は解除したままでOK */
+    /* cursor: pointer; を削除し、テキスト選択を邪魔しないようにします */
+}
+
+#container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    /* 画面全体をクリック可能にする場合は、ここにカーソルを指定します */
+    cursor: pointer; 
+}
+
+img {
+    image-rendering: pixelated;
+}
+
+/* テキストエリアは選択しやすいように専用のカーソル（I型）にします */
+#dialog, #diaryContent, #displayText {
+    margin-top: 24px;
+    text-align: center;
+    white-space: pre-line;
+    line-height: 1.8;
+    font-size: 18px;
+    min-height: 80px;
+    cursor: text; /* マウスを乗せたときにテキスト選択用のカーソルにする */
+}
+
+#displayText {
+    margin-top: 20px;
+    font-size: 18px;
+    display: none;
+}
+
+#textInput {
+    display: none;
+    margin-top: 10px;
+    padding: 6px 10px;
+    background: #000;
+    color: #fff;
+    border: 1px solid #fff;
+    outline: none;
+    text-align: center;
+    font-size: 18px;
+    cursor: text;
+}
+
+#submitButton {
+    display: none;
+    margin-top: 10px;
+    padding: 6px 18px;
+    background: #000;
+    color: #fff;
+    border: 1px solid #fff;
+    cursor: pointer;
+}
+
+#submitButton:hover {
+    background: #333;
+}
+
+#hint {
+    position: sticky;
+    bottom: 20px;
+    width: 100%;
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+    cursor: default;
+}
+
+#diaryOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    cursor: default;
+}
+
+#diaryPage {
+    width: 600px;
+    max-width: 90%;
+    height: 700px;
+    max-height: 90%;
+    background: #000000;
+    color: #222;
+    padding: 40px;
+    box-sizing: border-box;
+    border: 4px solid #ffffff;
+    display: flex;
+    flex-direction: column;
+}
+
+#diaryContent {
+    color: #ffffff;
+    flex: 1;
+    white-space: pre-wrap;
+    line-height: 1.8;
+    overflow-y: auto;
+    font-size: 16px;
+    margin-top: 0; /* 余白調整 */
+}
+
+/*次のページ*/
+#nextPageButton {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background: #000000;
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    text-align: center;
+    align-self: center;
+    font-family: inherit;
+}
+
+#nextPageButton:hover {
+    background: #a4a4a4;
+}
+
+/* 通常の文字を選択したとき：背景が白、文字が黒 */
+::selection {
+    background: #ffffff; 
+    color: #000000;      
+}
+
+/* 隠し文字（.secret）の通常時：背景と同じ黒にして消す */
+.secret {
+    color: #000000;
+}
+
+/* 隠し文字を選択したとき：背景が黒、文字が白（または赤など） */
+.secret::selection {
+    background: #000000; /* 選択の背景を黒にする */
+    color: #ffffff;      /* 文字を白にして浮かび上がらせる */
+}

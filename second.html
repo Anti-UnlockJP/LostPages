@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>lost pages</title>
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="container">
+    <img src="images/repito.png" width="128" height="128" alt="レピト">
+    <div id="dialog"></div>
+    <div id="displayText"></div>
+    <input id="textInput" type="text" autocomplete="off">
+    <button id="submitButton">決定</button>
+
+    <div id="diaryOverlay">
+        <div id="diaryPage">
+            <div id="diaryContent"></div>
+            <button id="nextPageButton" onclick="window.location.href='e2361c6d-eced-48b0-95ef-f8267d68b886.html';">次のページへ</button>
+        </div>
+    </div>
+</div>
+<div id="hint">Enter またはクリック</div>
+<button onclick="showDiary('2月5日\nかんりしゃって人が僕をこのサイトにも連れてきた\n僕はこのページのますこっときゃらくたーっていうらしい\nよくわからないけどかんりしゃは笑顔だった\n僕は何もしていないのに')" style="margin-top: 100px;
+    background: #000;
+    color: #fff;">日記</button>
+<script>
+
+    
+const speaker = "???";
+
+const currentPage = 2; // このページ番号だけ変更
+
+
+let messages = [
+    { text: "あ、" },
+    { text: '次の"ページ"に来たようだね' },
+    { text: "ありがとう" },
+    { text: () => `ところで、${playerName}。` },
+    { text: "僕は日記はあの一冊しか持ってないんだ" },
+    { text: "前のページのことは僕はすべて知っている" },
+    { text: "だからわかる、あのページにはもう日記はない" },
+    { text: "日記がないと次のページは開けない" },
+    { text: "..." }
+    
+];
+
+const savedPage = Number(localStorage.getItem("maxPage") || 0);
+
+console.log(savedPage);
+        if (savedPage == 7) {
+            triggerServerCrash();
+            console.log("maxPage is 7, triggering server crash");
+        }
+
+if (savedPage < currentPage) {
+
+    // 初めてこのページまで来た
+
+    localStorage.setItem("maxPage", currentPage);
+
+
+
+} else if (savedPage === currentPage) {
+
+    // 同じページに戻ってきた
+
+    messages.unshift({ text: "あ、戻ってきた！" });
+
+
+
+} else {
+
+    // より先まで進んだあと、この前のページへ戻ってきた
+
+    messages = [
+
+        { text: "あ、前のページ戻ってきたね。" }
+
+    ];
+
+}
+
+const dialog = document.getElementById("dialog");
+const displayText = document.getElementById("displayText");
+const textInput = document.getElementById("textInput");
+const submitButton = document.getElementById("submitButton");
+const diaryOverlay = document.getElementById("diaryOverlay");
+const diaryContent = document.getElementById("diaryContent");
+
+const playerName = localStorage.getItem("playerName");
+let index = 0;
+let typing = false;
+let waitingInput = false;
+
+let currentText = "";
+let currentChar = 0;
+let timer = null;
+
+function triggerServerCrash() {
+    document.body.innerHTML = `
+        <div style="
+            background-color: #000000; 
+            color: #ff3333; 
+            font-family: monospace; 
+            font-size: 24px;
+            padding: 50px;
+            height: 100vh;
+            box-sizing: border-box;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            z-index: 999999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        ">
+            [サーバーが存在しません]
+        </div>
+    `;
+}
+function typeMessage(text){
+    typing = true;
+    currentText = text;
+    currentChar = 0;
+    dialog.textContent = `[${speaker}]\n\n`;
+
+    timer = setInterval(()=>{
+        currentChar++;
+        dialog.textContent = `[${speaker}]\n\n` + currentText.substring(0,currentChar);
+
+        if(currentChar >= currentText.length){
+            clearInterval(timer);
+            typing = false;
+        }
+    }, 35);
+}
+
+function showNext(){
+    if(index >= messages.length){
+        dialog.textContent = "＊";
+        return;
+    }
+
+    const event = messages[index];
+    index++;
+
+    if(event.text){
+        const text = typeof event.text === "function" ? event.text() : event.text;
+        if(text === ""){
+            dialog.textContent = "＊";
+            return;
+        }
+        typeMessage(text);
+        return;
+    }
+
+    if(event.input){
+        dialog.textContent = `[${speaker}]\n\n`;
+        askInput(event.input);
+        return;
+    }
+
+    if(event.diary){
+        dialog.textContent = "＊";
+        showDiary(event.diary);
+        return;
+    }
+}
+
+function next(){
+    if(waitingInput) return;
+
+    if(typing){
+        clearInterval(timer);
+        dialog.textContent = `[${speaker}]\n\n` + currentText;
+        typing = false;
+        return;
+    }
+
+    showNext();
+}
+
+function askInput(text){
+    waitingInput = true;
+    displayText.style.display = "block";
+    displayText.textContent = text;
+    textInput.style.display = "block";
+    submitButton.style.display = "inline-block";
+    
+    textInput.value = "";
+    textInput.focus();
+}
+
+function finishInput(){
+    playerName = textInput.value || "名無し"; 
+    
+    waitingInput = false;
+    displayText.style.display = "none";
+    textInput.style.display = "none";
+    submitButton.style.display = "none";
+    
+    showNext(); 
+}
+
+submitButton.addEventListener("click", (e) => {
+    e.stopPropagation(); 
+    finishInput();
+});
+
+textInput.addEventListener("keydown", (e) => {
+    if(e.key === "Enter"){
+        e.stopPropagation(); 
+        finishInput();
+    }
+});
+
+document.addEventListener("click", next);
+
+document.addEventListener("keydown", (e) => {
+    if(e.key === "Enter"){
+        next();
+    }
+});
+
+function showDiary(text){
+    waitingInput = true; // trueのままにすることで、画面全体のクリックやEnterを無効化し続けます
+    diaryContent.textContent = text;
+    diaryOverlay.style.display = "flex";
+}
+
+// 変更: closeDiary関数と、それに紐づくイベントリスナー（クリック・Enterでの解除）を削除しました
+
+// ゲーム開始
+showNext();
+
+</script>
+
+</body>
+</html>
