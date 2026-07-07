@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>404 Not Found</title>
     <style>
+        /* 初期状態（普通の404用）のスタイル */
         body {
             background-color: #ffffff;
             color: #000000;
@@ -16,7 +17,7 @@
             margin-bottom: 10px;
         }
 
-        /* 最後の隠しページ用*/
+        /* 最後の隠しページ用（maxPage === 6 の時だけ適用する）の黒いスタイル */
         body.final-glitch {
             background-color: #000000;
             color: #ffffff;
@@ -98,14 +99,12 @@ console.log(savedPage);
                     
                     <div id="hiddenDiary" style="display: block;">
                         <p><strong>【最後の日記】</strong></p>
-                        <p>（ここに次のURL、または管理者のメッセージを記述）</p>
                         <br>
                         <button onclick="window.location.href='final.html';">終着地点へ進む</button>
                     </div>
                 `;
                 
             } else {
-                // 普通に迷い込んだ人（maxPageが6以外）には、何もしない（普通の白い404画面のまま）
                 console.log("通常の404エラーを表示中");
             }
         });
