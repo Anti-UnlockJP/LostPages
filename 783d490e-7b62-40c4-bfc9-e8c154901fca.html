@@ -31,6 +31,8 @@ const speaker = "レピト";
 
 const currentPage = 4; // このページ番号だけ変更
 
+let playerName = localStorage.getItem("playerName"); 
+
 // messages配列の構成
 let messages = [
     { text: "なんで僕日記持ってたんだろ" },
@@ -97,7 +99,7 @@ const submitButton = document.getElementById("submitButton");
 const diaryOverlay = document.getElementById("diaryOverlay");
 const diaryContent = document.getElementById("diaryContent");
 
-const playerName = localStorage.getItem("playerName");
+
 let index = 0;
 let typing = false;
 let waitingInput = false;
