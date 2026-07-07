@@ -64,7 +64,7 @@ let messages = [
 const savedPage = Number(localStorage.getItem("maxPage") || 0);
 
 console.log(savedPage);
-        if (savedPage == 7) {
+        if (savedPage >= 7) {
             triggerServerCrash();
             console.log("maxPage is 7, triggering server crash");
         }
